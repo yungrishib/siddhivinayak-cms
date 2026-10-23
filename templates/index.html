@@ -1,0 +1,126 @@
+{% extends "base.html" %} {% block title %}Siddhivinayak Enterprises | Plumbing
+& Infrastructure Solutions{% endblock %} {% block content %}
+<!-- Hero Section -->
+<section
+  class="relative bg-gradient-to-br from-[#0b1120] via-[#1e293b] to-[#0b1120] text-white py-24 overflow-hidden"
+>
+  <div class="max-w-[1160px] mx-auto px-[5%] relative z-10">
+    <div class="max-w-3xl">
+      <span
+        class="inline-block py-1 px-3 rounded bg-accent/20 text-accent font-semibold text-xs tracking-wider uppercase mb-4"
+        >Established 1993 • Navi Mumbai</span
+      >
+      <h1
+        class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight"
+      >
+        Excellence in <span class="text-accent">Plumbing Solutions</span> &
+        Infrastructure Execution
+      </h1>
+      <p class="text-slate-300 text-lg mb-8 leading-relaxed">
+        Partnership firm specializing in turnkey SITC of Plumbing Works, PHE
+        systems, Pumps & Panels, and Design Engineering for high-rise
+        residential & commercial buildings.
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a
+          href="{{ url_for('projects') }}"
+          class="bg-accent text-white font-bold px-8 py-3.5 rounded-lg hover:bg-accent-hover transition-colors shadow-lg shadow-accent/20"
+          >View Project Portfolio</a
+        >
+        <a
+          href="{{ url_for('contact') }}"
+          class="bg-white/10 hover:bg-white/20 text-white font-bold px-8 py-3.5 rounded-lg border border-white/20 transition-colors"
+          >Get in Touch</a
+        >
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Stats / Highlights -->
+<section class="py-12 bg-white border-b border-slate-100">
+  <div
+    class="max-w-[1160px] mx-auto px-[5%] grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left"
+  >
+    <div class="p-6 rounded-xl bg-slate-50 border border-slate-100">
+      <p class="text-3xl font-extrabold text-primary mb-1">30+ Years</p>
+      <p class="text-slate-600 text-sm">
+        Of unmatched contracting experience since 1993.
+      </p>
+    </div>
+    <div class="p-6 rounded-xl bg-slate-50 border border-slate-100">
+      <p class="text-3xl font-extrabold text-primary mb-1">Turnkey SITC</p>
+      <p class="text-slate-600 text-sm">
+        Comprehensive plumbing, drainage & PHE systems.
+      </p>
+    </div>
+    <div class="p-6 rounded-xl bg-slate-50 border border-slate-100">
+      <p class="text-3xl font-extrabold text-primary mb-1">CBD Belapur</p>
+      <p class="text-slate-600 text-sm">
+        Headquartered in Navi Mumbai, Maharashtra.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Overview Section -->
+<section class="py-20 bg-slate-50">
+  <div
+    class="max-w-[1160px] mx-auto px-[5%] grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+  >
+    <div>
+      <p
+        class="text-accent text-[0.8rem] tracking-[0.12em] font-bold uppercase mb-2"
+      >
+        WHO WE ARE
+      </p>
+      <h2 class="text-3xl font-bold text-primary mb-6">
+        Building Trust Through Quality & Technical Expertise
+      </h2>
+      <p class="text-slate-600 mb-4 leading-relaxed">
+        Siddhivinayak Enterprises is a leading partnership firm providing
+        specialized plumbing and pipeline infrastructure solutions. Led by
+        veteran plumbing contractor <strong>Shri Yashwant J. Bhuvad</strong> (in
+        the industry since 1993) and
+        <strong>Shri Vishal V. Patil (B.E. Civil)</strong>, who brings extensive
+        experience from top-tier developers like Neelkanth Group and Rutu
+        Builders.
+      </p>
+      <p class="text-slate-600 mb-6 leading-relaxed">
+        We handle end-to-end execution including system design, statutory
+        approvals, material supply, installation, testing, and commissioning
+        (SITC) for major residential towers and commercial spaces.
+      </p>
+      <a
+        href="{{ url_for('about') }}"
+        class="inline-flex items-center gap-2 font-bold text-primary hover:text-accent transition-colors"
+      >
+        Read Full Organizational Structure →
+      </a>
+    </div>
+    <div class="bg-primary text-white p-8 rounded-2xl shadow-xl">
+      <h3 class="text-xl font-bold mb-6 border-b border-white/10 pb-4">
+        Our Core Scope of Work
+      </h3>
+      <ul class="space-y-4 text-slate-300 text-sm">
+        <li class="flex items-start gap-3">
+          <span class="text-accent font-bold">✓</span> SITC of Plumbing work on
+          a turnkey basis with materials.
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-accent font-bold">✓</span> Design, drawing &
+          approval of schemes for plumbing systems.
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-accent font-bold">✓</span> Supply, Installation,
+          Testing & Commissioning of Pumps & Panels.
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-accent font-bold">✓</span> Water Supply, Drainage,
+          WTP / STP / ETP & Solar Systems.
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+{% endblock %}
