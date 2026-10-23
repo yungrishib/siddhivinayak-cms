@@ -1,0 +1,204 @@
+{% extends "base.html" %} {% block title %}Admin - Manage Projects |
+Siddhivinayak Enterprises{% endblock %} {% block content %}
+<section class="py-12 bg-slate-50 min-h-screen">
+  <div class="max-w-[1160px] mx-auto px-[5%]">
+    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+      <div>
+        <p class="text-accent text-[0.8rem] tracking-[0.12em] font-bold">
+          ADMIN PANEL
+        </p>
+        <h1 class="text-3xl font-bold text-primary">
+          Manage Projects Portfolio
+        </h1>
+      </div>
+      <div class="flex gap-3">
+        <a
+          href="{{ url_for('view_enquiries') }}"
+          class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-light transition-colors"
+        >
+          View Enquiries
+        </a>
+        <a
+          href="{{ url_for('admin_logout') }}"
+          class="bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-rose-700 transition-colors"
+        >
+          Logout
+        </a>
+      </div>
+    </div>
+
+    <!-- Add Project Form Card -->
+    <div
+      class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-12"
+    >
+      <h2 class="text-xl font-bold text-primary mb-4">Add New Project</h2>
+      <form
+        action="{{ url_for('admin_projects') }}"
+        method="POST"
+        enctype="multipart/form-data"
+        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">
+            Sr. No / Ref
+          </label>
+          <input
+            type="text"
+            name="sr_no"
+            required
+            placeholder="e.g. 1"
+            class="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-white text-slate-800 focus:outline-none focus:border-primary"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">
+            Name of Work / Building
+          </label>
+          <input
+            type="text"
+            name="name_of_work"
+            required
+            placeholder="e.g. Triumph Tower"
+            class="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-white text-slate-800 focus:outline-none focus:border-primary"
+          />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">
+            Nature & Scope of Work
+          </label>
+          <textarea
+            name="nature_of_work"
+            rows="2"
+            required
+            placeholder="Plumbing work..."
+            class="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-white text-slate-800 focus:outline-none focus:border-primary"
+          ></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">
+            Project Status
+          </label>
+          <select
+            name="year_or_status"
+            required
+            class="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-white text-slate-800 font-medium focus:outline-none focus:border-primary"
+          >
+            <option value="Completed">Completed</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Not Completed">Not Completed</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">
+            Client / W.O. Value
+          </label>
+          <input
+            type="text"
+            name="client_or_value"
+            required
+            placeholder="e.g. 2.5 Cr."
+            class="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-white text-slate-800 focus:outline-none focus:border-primary"
+          />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-1">
+            Project Image (Uploads directly to Supabase)
+          </label>
+          <input
+            type="file"
+            name="project_image"
+            accept="image/*"
+            class="w-full p-2 border border-slate-200 rounded-lg text-sm bg-white text-slate-800 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-light"
+          />
+        </div>
+        <div class="md:col-span-2">
+          <button
+            type="submit"
+            class="w-full py-3 bg-accent text-white font-bold rounded-lg hover:bg-accent-hover transition-colors shadow-sm"
+          >
+            Add Project to Website
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Existing Projects Table -->
+    <div
+      class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+    >
+      <div class="p-6 border-b border-slate-100">
+        <h2 class="text-xl font-bold text-primary">
+          All Current Projects on Website ({{ projects|length }})
+        </h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr
+              class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider"
+            >
+              <th class="p-4">Sr</th>
+              <th class="p-4">Preview</th>
+              <th class="p-4">Name of Work</th>
+              <th class="p-4">Nature & Scope</th>
+              <th class="p-4">Status</th>
+              <th class="p-4">Client / Value</th>
+              <th class="p-4 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-sm">
+            {% for p in projects %}
+            <tr class="hover:bg-slate-50">
+              <td class="p-4 font-bold text-primary">{{ p.sr_no }}</td>
+              <td class="p-4">
+                {% if p.image_filename %}
+                <img
+                  src="{{ p.image_filename }}"
+                  alt="Preview"
+                  class="w-12 h-12 object-cover rounded-lg border border-slate-200"
+                />
+                {% else %}
+                <span class="text-xs text-slate-400">No Image</span>
+                {% endif %}
+              </td>
+              <td class="p-4 font-semibold text-primary">
+                {{ p.name_of_work }}
+              </td>
+              <td class="p-4 text-slate-600">{{ p.nature_of_work }}</td>
+              <td class="p-4">
+                <span
+                  class="px-2.5 py-1 rounded text-xs font-bold {% if p.year_or_status == 'Completed' %} bg-emerald-100 text-emerald-800 {% elif p.year_or_status == 'Ongoing' %} bg-amber-100 text-amber-800 {% else %} bg-rose-100 text-rose-800 {% endif %}"
+                >
+                  {{ p.year_or_status }}
+                </span>
+              </td>
+              <td class="p-4 text-slate-600">{{ p.client_or_value }}</td>
+              <td class="p-4 text-right">
+                <form
+                  action="{{ url_for('delete_project', id=p.id) }}"
+                  method="POST"
+                  onsubmit="return confirm('Delete this project?');"
+                >
+                  <button
+                    type="submit"
+                    class="text-rose-600 hover:text-rose-800 font-semibold text-xs bg-rose-50 px-3 py-1.5 rounded border border-rose-200"
+                  >
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="p-8 text-center text-slate-400">
+                No projects added yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

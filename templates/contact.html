@@ -1,0 +1,200 @@
+{% extends "base.html" %} {% block title %}Contact Us | Siddhivinayak
+Enterprises{% endblock %} {% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-to-br from-[#0b1120] to-[#1e293b] text-white py-16">
+  <div class="max-w-[1160px] mx-auto px-[5%]">
+    <p class="text-accent text-[0.8rem] tracking-[0.12em] font-bold mb-2">
+      GET IN TOUCH
+    </p>
+    <h1 class="text-white text-3xl md:text-5xl font-bold">
+      Have a project in mind?
+    </h1>
+  </div>
+</section>
+
+<!-- Contact Section -->
+<section class="py-20 bg-slate-50">
+  <div
+    class="max-w-[1160px] mx-auto px-[5%] grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-14"
+  >
+    <!-- Contact Info Copy -->
+    <div class="contact-copy">
+      <p class="text-slate-600 mb-8 text-lg">
+        Share a few details and the team can follow up using the contact
+        information you provide.
+      </p>
+
+      <div class="flex gap-4 mb-6 items-center">
+        <span
+          class="w-12 h-12 bg-white border border-slate-200 grid place-items-center rounded-full text-accent flex-shrink-0 text-lg shadow-sm"
+          >✉</span
+        >
+        <div>
+          <strong
+            class="block text-[0.85rem] text-slate-500 uppercase tracking-wider"
+            >Email</strong
+          >
+          <p class="font-semibold text-primary text-base">
+            siddhivinayakenterprises15@gmail.com
+          </p>
+        </div>
+      </div>
+      <div class="flex gap-4 mb-6 items-center">
+        <span
+          class="w-12 h-12 bg-white border border-slate-200 grid place-items-center rounded-full text-accent flex-shrink-0 text-lg shadow-sm"
+          >☎</span
+        >
+        <div>
+          <strong
+            class="block text-[0.85rem] text-slate-500 uppercase tracking-wider"
+            >Phone</strong
+          >
+          <p class="font-semibold text-primary text-base">+91 9881109621</p>
+        </div>
+      </div>
+      <div class="flex gap-4 mb-6 items-center">
+        <span
+          class="w-12 h-12 bg-white border border-slate-200 grid place-items-center rounded-full text-accent flex-shrink-0 text-lg shadow-sm"
+          >⌖</span
+        >
+        <div>
+          <strong
+            class="block text-[0.85rem] text-slate-500 uppercase tracking-wider"
+            >Location</strong
+          >
+          <p class="font-semibold text-primary text-base">
+            Navi Mumbai, Maharashtra, India
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Form -->
+    <form
+      class="bg-white p-10 rounded-lg border border-slate-200 shadow-sm"
+      action="{{ url_for('contact') }}"
+      method="POST"
+    >
+      <h3 class="text-primary text-xl font-bold mb-6">Send an enquiry</h3>
+
+      {% if message %}
+      <div
+        class="p-4 rounded-lg text-sm mb-6 bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium"
+        role="status"
+      >
+        {{ message }}
+      </div>
+      {% endif %} {% if error %}
+      <div
+        class="p-4 rounded-lg text-sm mb-6 bg-rose-50 text-rose-800 border border-rose-200 font-medium"
+        role="alert"
+      >
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <label
+        class="block text-[0.85rem] font-semibold text-primary mb-1.5"
+        for="name"
+        >Full name</label
+      >
+      <input
+        class="w-full p-3 border border-slate-200 rounded-lg text-[0.95rem] mb-4 bg-white focus:outline-2 focus:outline-accent focus:border-transparent"
+        id="name"
+        name="name"
+        type="text"
+        minlength="2"
+        maxlength="100"
+        autocomplete="name"
+        required
+        placeholder="Your name"
+      />
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label
+            class="block text-[0.85rem] font-semibold text-primary mb-1.5"
+            for="phone"
+            >Phone number</label
+          >
+          <input
+            class="w-full p-3 border border-slate-200 rounded-lg text-[0.95rem] mb-4 bg-white focus:outline-2 focus:outline-accent focus:border-transparent"
+            id="phone"
+            name="phone"
+            type="tel"
+            maxlength="20"
+            autocomplete="tel"
+            required
+            placeholder="+91 ..."
+          />
+        </div>
+        <div>
+          <label
+            class="block text-[0.85rem] font-semibold text-primary mb-1.5"
+            for="email"
+            >Email address</label
+          >
+          <input
+            class="w-full p-3 border border-slate-200 rounded-lg text-[0.95rem] mb-4 bg-white focus:outline-2 focus:outline-accent focus:border-transparent"
+            id="email"
+            name="email"
+            type="email"
+            maxlength="254"
+            autocomplete="email"
+            placeholder="you@example.com"
+          />
+        </div>
+      </div>
+
+      <label
+        class="block text-[0.85rem] font-semibold text-primary mb-1.5"
+        for="service"
+        >What are you interested in?</label
+      >
+      <select
+        class="w-full p-3 border border-slate-200 rounded-lg text-[0.95rem] mb-4 bg-white focus:outline-2 focus:outline-accent focus:border-transparent"
+        id="service"
+        name="service"
+        required
+      >
+        <option value="">Choose a service</option>
+        <option>Real Estate</option>
+        <option>Pipeline Solutions</option>
+        <option>Construction & Projects</option>
+        <option>Other Enquiry</option>
+      </select>
+
+      <label
+        class="block text-[0.85rem] font-semibold text-primary mb-1.5"
+        for="message"
+        >Your message</label
+      >
+      <textarea
+        class="w-full p-3 border border-slate-200 rounded-lg text-[0.95rem] mb-4 bg-white focus:outline-2 focus:outline-accent focus:border-transparent"
+        id="message"
+        name="message"
+        rows="4"
+        maxlength="2000"
+        required
+        placeholder="Tell us briefly about your requirements"
+      ></textarea>
+
+      <!-- Honeypot anti-spam field -->
+      <div class="hidden" aria-hidden="true">
+        <label for="website">Leave this field empty</label>
+        <input id="website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <button
+        class="w-full mt-2 inline-flex items-center justify-center px-6 py-3.5 rounded-lg font-semibold bg-accent text-white hover:bg-accent-hover transition-colors gap-2 cursor-pointer border-none"
+        type="submit"
+      >
+        Submit Enquiry <span>→</span>
+      </button>
+      <p class="text-slate-500 text-[0.75rem] text-center mt-4">
+        We value your privacy and typically reply within 24 business hours.
+      </p>
+    </form>
+  </div>
+</section>
+{% endblock %}

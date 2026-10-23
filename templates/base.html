@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}Siddhivinayak Enterprises | Real Estate & Pipeline
+      Solutions{% endblock %}
+    </title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0f172a",
+              "primary-light": "#1e293b",
+              accent: "#d97706",
+              "accent-hover": "#b45309",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="bg-white text-slate-700 font-sans antialiased selection:bg-amber-500 selection:text-white"
+  >
+    <!-- SHARED NAVBAR -->
+    <header
+      class="sticky top-0 bg-primary/95 backdrop-blur-md z-50 border-b border-white/10"
+    >
+      <nav
+        class="max-w-[1160px] mx-auto px-[5%] flex items-center justify-between h-[72px]"
+        aria-label="Main navigation"
+      >
+        <a
+          class="flex items-center gap-3 text-white no-underline"
+          href="{{ url_for('home') }}"
+          aria-label="Siddhivinayak Enterprises home"
+        >
+          <span
+            class="bg-accent text-white font-extrabold text-base w-[38px] h-[38px] rounded-md grid place-items-center"
+            >SE</span
+          >
+          <span class="font-bold text-[1.15rem] leading-tight">
+            Siddhivinayak
+            <small
+              class="block font-normal text-[0.65rem] tracking-[0.18em] text-[#94a3b8]"
+              >ENTERPRISES</small
+            >
+          </span>
+        </a>
+
+        <button
+          class="menu-toggle md:hidden bg-transparent border-none text-white text-[1.75rem] cursor-pointer"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+          aria-controls="nav-links"
+        >
+          ☰
+        </button>
+
+        <div
+          class="nav-links hidden md:flex items-center gap-7 absolute md:relative top-[72px] md:top-auto left-0 right-0 bg-primary md:bg-transparent flex-col md:flex-row py-6 md:py-0 border-b md:border-none border-white/10"
+          id="nav-links"
+        >
+          <a
+            href="{{ url_for('home') }}"
+            class="text-[#cbd5e1] hover:text-white text-[0.95rem] no-underline transition-colors"
+            >Home</a
+          >
+          <a
+            href="{{ url_for('about') }}"
+            class="text-[#cbd5e1] hover:text-white text-[0.95rem] no-underline transition-colors"
+            >About</a
+          >
+          <a
+            href="{{ url_for('services') }}"
+            class="text-[#cbd5e1] hover:text-white text-[0.95rem] no-underline transition-colors"
+            >Services</a
+          >
+          <a
+            href="{{ url_for('projects') }}"
+            class="text-[#cbd5e1] hover:text-white text-[0.95rem] no-underline transition-colors"
+            >Projects</a
+          >
+          <a
+            class="bg-accent text-white px-4 py-2 rounded-lg font-semibold text-[0.95rem] hover:bg-accent-hover transition-colors"
+            href="{{ url_for('contact') }}"
+            >Contact Us</a
+          >
+        </div>
+      </nav>
+    </header>
+
+    <!-- UNIQUE PAGE CONTENT INJECTED HERE -->
+    <main>{% block content %}{% endblock %}</main>
+
+    <!-- SHARED FOOTER -->
+    <footer class="bg-primary text-white py-12 pb-6 mt-20">
+      <div
+        class="max-w-[1160px] mx-auto px-[5%] flex justify-between items-center flex-wrap gap-6 pb-8 border-b border-white/10"
+      >
+        <a
+          class="flex items-center gap-3 text-white no-underline"
+          href="{{ url_for('home') }}"
+        >
+          <span
+            class="bg-accent text-white font-extrabold text-base w-[38px] h-[38px] rounded-md grid place-items-center"
+            >SE</span
+          >
+          <span class="font-bold text-[1.15rem] leading-tight"
+            >Siddhivinayak
+            <small
+              class="block font-normal text-[0.65rem] tracking-[0.18em] text-[#94a3b8]"
+              >ENTERPRISES</small
+            ></span
+          >
+        </a>
+        <p class="text-[#94a3b8] text-[0.9rem]">
+          Real estate and pipeline solutions with a focus on trust and quality.
+        </p>
+        <a
+          href="#home"
+          class="text-accent font-semibold text-[0.85rem] no-underline hover:underline"
+          >Back to top ↑</a
+        >
+      </div>
+      <div
+        class="max-w-[1160px] mx-auto px-[5%] flex justify-between pt-6 text-[0.8rem] text-[#64748b] flex-wrap gap-3"
+      >
+        <span
+          >© <span id="year"></span> Siddhivinayak Enterprises. All rights
+          reserved.</span
+        >
+        <span>Built for your business.</span>
+      </div>
+    </footer>
+
+    <!-- JavaScript Link -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>

@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}Admin Login | Siddhivinayak
+Enterprises{% endblock %} {% block content %}
+<section
+  class="py-24 bg-slate-50 min-h-[80vh] flex items-center justify-center"
+>
+  <div
+    class="max-w-md w-full bg-white p-8 rounded-xl border border-slate-200 shadow-sm"
+  >
+    <div class="text-center mb-6">
+      <span
+        class="bg-primary text-white font-extrabold text-sm w-12 h-12 rounded-lg inline-grid place-items-center mb-2"
+        >🔒</span
+      >
+      <h1 class="text-2xl font-bold text-primary">Admin Portal</h1>
+      <p class="text-slate-500 text-sm">
+        Enter your secure password to manage projects.
+      </p>
+    </div>
+
+    {% if error %}
+    <div
+      class="p-3 rounded-lg text-sm mb-4 bg-rose-50 text-rose-800 border border-rose-200 font-medium"
+      role="alert"
+    >
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <form action="{{ url_for('admin_login') }}" method="POST">
+      <label
+        class="block text-xs font-bold text-slate-500 uppercase mb-1.5"
+        for="password"
+        >Admin Password</label
+      >
+      <input
+        class="w-full p-3 border border-slate-200 rounded-lg text-sm mb-5 bg-white focus:outline-2 focus:outline-accent"
+        type="password"
+        id="password"
+        name="password"
+        required
+        placeholder="Enter password"
+      />
+      <button
+        type="submit"
+        class="w-full py-3 bg-accent text-white font-bold rounded-lg hover:bg-accent-hover transition-colors"
+      >
+        Login to Dashboard
+      </button>
+    </form>
+
+    <div class="text-center mt-6">
+      <a
+        href="{{ url_for('home') }}"
+        class="text-xs text-slate-400 hover:text-primary"
+        >← Return to Public Website</a
+      >
+    </div>
+  </div>
+</section>
+{% endblock %}
