@@ -20,16 +20,20 @@ app = Flask(
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max 16MB upload
 
-# Environment Credentials
-db_url = os.getenv('DATABASE_URL')
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+# Environment Credentials & URL Sanitization
+raw_db_url = os.getenv('DATABASE_URL', '').strip().strip("'").strip('"')
+
+if raw_db_url.startswith("postgres://"):
+    raw_db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_secret_key_change_this')
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_secret_key_change_this').strip().strip("'").strip('"')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123').strip().strip("'").strip('"')
 
 # Supabase Storage Setup
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().strip("'").strip('"')
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "").strip().strip("'").strip('"')
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 STORAGE_BUCKET = "project-images"
 
