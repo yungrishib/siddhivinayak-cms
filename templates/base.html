@@ -27,9 +27,9 @@
   <body
     class="bg-white text-slate-700 font-sans antialiased selection:bg-amber-500 selection:text-white"
   >
-    <!-- SHARED NAVBAR -->
+    <!-- LIQUID GLASS NAVBAR -->
     <header
-      class="sticky top-0 bg-primary/95 backdrop-blur-md z-50 border-b border-white/10"
+      class="fixed top-0 left-0 w-full z-50 bg-primary/40 backdrop-blur-xl backdrop-saturate-180 border-b border-white/10 shadow-2xl"
     >
       <nav
         class="max-w-[1160px] mx-auto px-[5%] flex items-center justify-between h-[72px]"
@@ -63,7 +63,7 @@
         </button>
 
         <div
-          class="nav-links hidden md:flex items-center gap-7 absolute md:relative top-[72px] md:top-auto left-0 right-0 bg-primary md:bg-transparent flex-col md:flex-row py-6 md:py-0 border-b md:border-none border-white/10"
+          class="nav-links hidden md:flex items-center gap-7 absolute md:relative top-[72px] md:top-auto left-0 right-0 bg-primary/95 md:bg-transparent flex-col md:flex-row py-6 md:py-0 border-b md:border-none border-white/10"
           id="nav-links"
         >
           <a
@@ -87,7 +87,7 @@
             >Projects</a
           >
           <a
-            class="bg-accent text-white px-4 py-2 rounded-lg font-semibold text-[0.95rem] hover:bg-accent-hover transition-colors"
+            class="bg-accent text-white px-4 py-2 rounded-lg font-semibold text-[0.95rem] hover:bg-accent-hover transition-colors shadow-md"
             href="{{ url_for('contact') }}"
             >Contact Us</a
           >
