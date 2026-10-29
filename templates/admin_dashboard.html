@@ -1,0 +1,79 @@
+{% extends "base.html" %} {% block title %}Admin Dashboard | Siddhivinayak
+Enterprises{% endblock %} {% block content %}
+<section class="py-12 bg-slate-50 min-h-screen">
+  <div class="max-w-[1160px] mx-auto px-[5%]">
+    <!-- Top Bar -->
+    <div
+      class="flex flex-wrap justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-sm border border-slate-200"
+    >
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">
+          Content Management System
+        </h1>
+        <p class="text-slate-500 text-sm">
+          Select any section to update text or photos live across all devices.
+        </p>
+      </div>
+      <div class="flex gap-3">
+        <a
+          href="{{ url_for('admin_projects') }}"
+          class="bg-primary text-white font-semibold px-4 py-2 rounded-lg hover:bg-slate-800 text-sm"
+        >
+          📁 Manage Projects
+        </a>
+        <a
+          href="{{ url_for('view_enquiries') }}"
+          class="bg-accent text-white font-semibold px-4 py-2 rounded-lg hover:bg-amber-600 text-sm"
+        >
+          📬 View Enquiries
+        </a>
+        <a
+          href="{{ url_for('admin_logout') }}"
+          class="bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 text-sm"
+        >
+          Logout
+        </a>
+      </div>
+    </div>
+
+    <!-- Editable Site Sections List -->
+    <h2 class="text-xl font-bold text-slate-800 mb-4">Editable Page Content</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {% for item in contents %}
+      <div
+        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between"
+      >
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span
+              class="text-xs font-bold uppercase tracking-wider text-accent bg-amber-50 px-2 py-1 rounded"
+            >
+              {{ item.section_key }}
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-1">
+            {{ item.title or "Untitled Section" }}
+          </h3>
+          <p class="text-slate-600 text-sm font-medium mb-3">
+            {{ item.subtitle or "" }}
+          </p>
+          <p
+            class="text-slate-500 text-xs line-clamp-3 bg-slate-50 p-3 rounded border border-slate-100"
+          >
+            {{ item.body_text or "No text added yet." }}
+          </p>
+        </div>
+        <div class="mt-4 pt-4 border-t border-slate-100">
+          <a
+            href="{{ url_for('edit_content', section_key=item.section_key) }}"
+            class="inline-block w-full text-center bg-slate-100 hover:bg-primary hover:text-white text-slate-700 font-bold py-2 rounded-lg text-sm transition-colors"
+          >
+            Edit This Section
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
