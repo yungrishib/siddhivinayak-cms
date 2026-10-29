@@ -38,6 +38,7 @@ db = SQLAlchemy(app)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# --- DATABASE MODELS ---
 class Enquiry(db.Model):
     __tablename__ = 'enquiries'
     id = db.Column(db.Integer, primary_key=True)
@@ -56,23 +57,50 @@ class Project(db.Model):
     nature_of_work = db.Column(db.Text, nullable=False)
     year_or_status = db.Column(db.String(100), nullable=False)
     client_or_value = db.Column(db.String(100), nullable=False)
-    image_filename = db.Column(db.String(500), nullable=True)  # Stores public Supabase URL or file path
+    image_filename = db.Column(db.String(500), nullable=True)
 
+class SiteContent(db.Model):
+    __tablename__ = 'site_content'
+    id = db.Column(db.Integer, primary_key=True)
+    section_key = db.Column(db.String(100), unique=True, nullable=False)
+    title = db.Column(db.Text, nullable=True)
+    subtitle = db.Column(db.Text, nullable=True)
+    body_text = db.Column(db.Text, nullable=True)
+
+# Auto-create tables and populate default editable content
 with app.app_context():
     db.create_all()
+    
+    # Initialize default website content blocks if empty
+    default_contents = [
+        ('hero', 'Siddhivinayak Enterprises', 'Leading Construction & Civil Solutions', 'Delivering excellence in construction, renovation, and structural engineering across Maharashtra.'),
+        ('about', 'About Our Company', 'Quality & Trust Since Day One', 'We specialize in modern infrastructure developments, residential construction, and commercial engineering projects.'),
+        ('services', 'Our Services', 'Comprehensive Solutions', 'Civil Construction | Structural Engineering | Interior Design | Renovation & Waterproofing'),
+        ('contact_info', 'Contact Information', 'Reach Out To Us', 'Pune, Maharashtra | Phone: +91 9876543210 | Email: contact@siddhivinayak.com')
+    ]
+    for key, title, subtitle, body in default_contents:
+        if not SiteContent.query.filter_by(section_key=key).first():
+            db.session.add(SiteContent(section_key=key, title=title, subtitle=subtitle, body_text=body))
+    db.session.commit()
 
-# --- PUBLIC ROUTES ---
+# --- PUBLIC DYNAMIC ROUTES ---
 @app.route('/')
 def home():
-    return render_template('index.html')
+    hero = SiteContent.query.filter_by(section_key='hero').first()
+    about = SiteContent.query.filter_by(section_key='about').first()
+    services_content = SiteContent.query.filter_by(section_key='services').first()
+    projects = Project.query.limit(6).all()
+    return render_template('index.html', hero=hero, about=about, services=services_content, projects=projects)
 
 @app.route('/about')
 def about():
-    return render_template('about.html')
+    about_content = SiteContent.query.filter_by(section_key='about').first()
+    return render_template('about.html', content=about_content)
 
 @app.route('/services')
 def services():
-    return render_template('services.html')
+    services_content = SiteContent.query.filter_by(section_key='services').first()
+    return render_template('services.html', content=services_content)
 
 @app.route('/projects')
 def projects():
@@ -83,6 +111,8 @@ def projects():
 def contact():
     message = None
     error = None
+    contact_info = SiteContent.query.filter_by(section_key='contact_info').first()
+    
     if request.method == 'POST':
         full_name = (request.form.get('name') or '').strip()
         phone = (request.form.get('phone') or '').strip()
@@ -100,8 +130,9 @@ def contact():
                 message = f"Thank you, {full_name}! Your enquiry has been received."
             except Exception as e:
                 db.session.rollback()
+                print("ENQUIRY SAVE ERROR:", str(e))
                 error = "Database error."
-    return render_template('contact.html', message=message, error=error)
+    return render_template('contact.html', message=message, error=error, info=contact_info)
 
 # --- ADMIN AUTHENTICATION ---
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -110,7 +141,7 @@ def admin_login():
     if request.method == 'POST':
         if request.form.get('password') == ADMIN_PASSWORD:
             session['is_admin'] = True
-            return redirect(url_for('admin_projects'))
+            return redirect(url_for('admin_dashboard'))
         else:
             error = "Invalid password."
     return render_template('admin_login.html', error=error)
@@ -120,12 +151,33 @@ def admin_logout():
     session.pop('is_admin', None)
     return redirect(url_for('admin_login'))
 
-# --- ADMIN DASHBOARD ROUTES ---
+# --- ADMIN DASHBOARD & CMS CONTENT ROUTES ---
+@app.route('/admin')
+def admin_dashboard():
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
+    contents = SiteContent.query.all()
+    return render_template('admin_dashboard.html', contents=contents)
+
+@app.route('/admin/content/edit/<section_key>', methods=['GET', 'POST'])
+def edit_content(section_key):
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
+    
+    content = SiteContent.query.filter_by(section_key=section_key).first_or_404()
+    if request.method == 'POST':
+        content.title = request.form.get('title')
+        content.subtitle = request.form.get('subtitle')
+        content.body_text = request.form.get('body_text')
+        db.session.commit()
+        return redirect(url_for('admin_dashboard'))
+        
+    return render_template('admin_edit_content.html', content=content)
+
 @app.route('/admin/enquiries')
 def view_enquiries():
     if not session.get('is_admin'):
         return redirect(url_for('admin_login'))
-    
     all_enquiries = Enquiry.query.order_by(Enquiry.created_at.desc()).all()
     return render_template('admin_enquiries.html', enquiries=all_enquiries)
 
@@ -141,7 +193,6 @@ def admin_projects():
         year_or_status = request.form.get('year_or_status')
         client_or_value = request.form.get('client_or_value')
         
-        # Stream image directly to Supabase Storage
         image_url = None
         if 'project_image' in request.files:
             file = request.files['project_image']
@@ -150,14 +201,11 @@ def admin_projects():
                 unique_filename = f"{int(datetime.utcnow().timestamp())}_{filename}"
                 file_bytes = file.read()
                 
-                # 1. Upload bytes directly to Supabase Bucket
                 supabase.storage.from_(STORAGE_BUCKET).upload(
                     path=unique_filename,
                     file=file_bytes,
                     file_options={"content-type": file.content_type}
                 )
-                
-                # 2. Retrieve public URL
                 image_url = supabase.storage.from_(STORAGE_BUCKET).get_public_url(unique_filename)
 
         new_project = Project(
@@ -183,7 +231,6 @@ def delete_project(id):
     proj = Project.query.get_or_404(id)
     if proj.image_filename:
         try:
-            # Extract file name from Supabase Public URL and delete from bucket
             storage_path = proj.image_filename.split('/')[-1]
             supabase.storage.from_(STORAGE_BUCKET).remove([storage_path])
         except Exception:
