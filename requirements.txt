@@ -2,6 +2,6 @@ Flask
 Flask-SQLAlchemy
 python-dotenv
 supabase
-psycopg[binary]
+Flask-Mail
+Werkzeug
 gunicorn
-werkzeugFlask-Mail 
