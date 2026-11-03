@@ -3,5 +3,6 @@ Flask-SQLAlchemy
 python-dotenv
 supabase
 Flask-Mail
+psycopg2-binary
 Werkzeug
 gunicorn
