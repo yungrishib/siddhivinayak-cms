@@ -23,16 +23,16 @@ app = Flask(
 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max 16MB upload
 
-# Environment Credentials & URL Sanitization
+# --- DATABASE CONNECTION & SANITIZATION ---
 raw_db_url = os.getenv('DATABASE_URL', '').strip().strip("'").strip('"')
 
-# Ensure PostgreSQL uses psycopg2 explicitly
+# Ensure PostgreSQL explicitly uses the psycopg2 driver
 if raw_db_url.startswith("postgres://"):
     raw_db_url = raw_db_url.replace("postgres://", "postgresql+psycopg2://", 1)
 elif raw_db_url.startswith("postgresql://") and not raw_db_url.startswith("postgresql+psycopg2://"):
     raw_db_url = raw_db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-# Remove unsupported pgbouncer query parameter
+# Clean up pgbouncer query parameters
 if "?pgbouncer=true" in raw_db_url:
     raw_db_url = raw_db_url.replace("?pgbouncer=true", "")
 elif "&pgbouncer=true" in raw_db_url:
@@ -40,14 +40,12 @@ elif "&pgbouncer=true" in raw_db_url:
 
 app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Engine options to prevent closed connection errors from Supabase Pooler
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     "pool_pre_ping": True,
     "pool_recycle": 300,
 }
 
-# Session Security Configurations
+# --- SECURITY & SESSION SETUP ---
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_secret_key_change_this').strip().strip("'").strip('"')
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -55,18 +53,19 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=4)
 
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123').strip().strip("'").strip('"')
 
-# Flask-Mail Setup
+# --- FLASK-MAIL CONFIGURATION (SSL PORT 465 FOR CLOUD HOSTING) ---
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
-app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
-app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() in ['true', 'on', '1']
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', '')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
-ADMIN_NOTIFY_EMAIL = os.getenv('ADMIN_NOTIFY_EMAIL', app.config['MAIL_USERNAME'])
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 465))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'False').lower() in ['true', 'on', '1']
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'True').lower() in ['true', 'on', '1']
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', '').strip()
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '').strip()
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME']).strip()
+ADMIN_NOTIFY_EMAIL = os.getenv('ADMIN_NOTIFY_EMAIL', app.config['MAIL_USERNAME']).strip()
 
 mail = Mail(app)
 
-# Supabase Storage Setup
+# --- SUPABASE STORAGE SETUP ---
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().strip("'").strip('"')
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "").strip().strip("'").strip('"')
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -117,7 +116,7 @@ class SiteContent(db.Model):
     subtitle = db.Column(db.Text, nullable=True)
     body_text = db.Column(db.Text, nullable=True)
 
-# Auto-create tables and populate default editable content
+# Auto-create tables and populate default content
 with app.app_context():
     db.create_all()
     
@@ -133,7 +132,7 @@ with app.app_context():
     db.session.commit()
 
 
-# --- PUBLIC DYNAMIC ROUTES ---
+# --- PUBLIC ROUTES ---
 @app.route('/')
 def home():
     hero = SiteContent.query.filter_by(section_key='hero').first()
@@ -186,10 +185,9 @@ def contact():
                 db.session.commit()
                 message = f"Thank you, {full_name}! Your enquiry has been received."
 
-                # Send Automated Email Notifications (Wrapped so mail errors don't crash the page)
-                try:
-                    if app.config['MAIL_USERNAME'] and app.config['MAIL_PASSWORD']:
-                        # 1. Admin Alert Email
+                # Send Automated Email Notifications safely without crashing on SMTP delays
+                if app.config['MAIL_USERNAME'] and app.config['MAIL_PASSWORD']:
+                    try:
                         admin_msg = Message(
                             subject=f"🚨 New Lead: {full_name} ({service})",
                             recipients=[ADMIN_NOTIFY_EMAIL],
@@ -197,7 +195,6 @@ def contact():
                         )
                         mail.send(admin_msg)
 
-                        # 2. Client Auto-confirmation Email
                         if email:
                             client_msg = Message(
                                 subject="Enquiry Received | Siddhivinayak Enterprises",
@@ -205,15 +202,16 @@ def contact():
                                 body=f"Dear {full_name},\n\nThank you for reaching out to Siddhivinayak Enterprises. We have received your inquiry regarding {service}.\n\nOur engineering team will review your requirement and contact you shortly at {phone}.\n\nBest Regards,\nSiddhivinayak Enterprises Team"
                             )
                             mail.send(client_msg)
-                except Exception as mail_err:
-                    print("MAIL DISPATCH WARNING (Form saved, email failed):", str(mail_err))
+                    except Exception as mail_err:
+                        print("SMTP NOTICE (Enquiry saved successfully, mail notification failed):", str(mail_err))
 
             except Exception as e:
                 db.session.rollback()
                 print("ENQUIRY SAVE ERROR:", str(e))
                 error = "Database error."
-                
+
     return render_template('contact.html', message=message, error=error, info=contact_info)
+
 
 # --- AUTOMATED SEO SITEMAP ROUTE ---
 @app.route('/sitemap.xml')
@@ -292,7 +290,6 @@ def update_enquiry_status(id):
         db.session.commit()
     return redirect(url_for('view_enquiries'))
 
-# --- CSV LEAD EXPORTER ROUTE ---
 @app.route('/admin/enquiries/export')
 def export_enquiries_csv():
     enquiries = Enquiry.query.order_by(Enquiry.created_at.desc()).all()
