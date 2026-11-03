@@ -174,14 +174,21 @@ def contact():
             error = "Please fill in all required fields."
         else:
             try:
-                new_lead = Enquiry(full_name=full_name, phone=phone, email=email if email else None, service=service, message=user_message)
+                new_lead = Enquiry(
+                    full_name=full_name, 
+                    phone=phone, 
+                    email=email if email else None, 
+                    service=service, 
+                    message=user_message,
+                    status='New'
+                )
                 db.session.add(new_lead)
                 db.session.commit()
                 message = f"Thank you, {full_name}! Your enquiry has been received."
 
-                # Send Automated Email Notifications
-                if app.config['MAIL_USERNAME']:
-                    try:
+                # Send Automated Email Notifications (Wrapped so mail errors don't crash the page)
+                try:
+                    if app.config['MAIL_USERNAME'] and app.config['MAIL_PASSWORD']:
                         # 1. Admin Alert Email
                         admin_msg = Message(
                             subject=f"🚨 New Lead: {full_name} ({service})",
@@ -198,15 +205,15 @@ def contact():
                                 body=f"Dear {full_name},\n\nThank you for reaching out to Siddhivinayak Enterprises. We have received your inquiry regarding {service}.\n\nOur engineering team will review your requirement and contact you shortly at {phone}.\n\nBest Regards,\nSiddhivinayak Enterprises Team"
                             )
                             mail.send(client_msg)
-                    except Exception as mail_err:
-                        print("EMAIL DISPATCH NOTICE:", str(mail_err))
+                except Exception as mail_err:
+                    print("MAIL DISPATCH WARNING (Form saved, email failed):", str(mail_err))
 
             except Exception as e:
                 db.session.rollback()
                 print("ENQUIRY SAVE ERROR:", str(e))
                 error = "Database error."
+                
     return render_template('contact.html', message=message, error=error, info=contact_info)
-
 
 # --- AUTOMATED SEO SITEMAP ROUTE ---
 @app.route('/sitemap.xml')
