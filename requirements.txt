@@ -4,4 +4,4 @@ python-dotenv
 supabase
 psycopg[binary]
 gunicorn
-werkzeug
+werkzeugFlask-Mail 

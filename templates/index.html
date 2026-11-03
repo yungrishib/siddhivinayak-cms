@@ -49,7 +49,138 @@
   </div>
 </section>
 
-<!-- HIGHLIGHTS / PROJECTS PREVIEW -->
+<!-- KEY METRICS & STATS BAR -->
+<section class="relative -mt-12 z-20 max-w-[1160px] mx-auto px-[5%]">
+  <div
+    class="bg-slate-900/90 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-6 md:p-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white"
+  >
+    <div class="p-2 border-r border-slate-800 last:border-none">
+      <div
+        class="text-3xl md:text-5xl font-black text-accent mb-1 flex justify-center items-center"
+      >
+        <span class="counter" data-target="30">0</span><span>+</span>
+      </div>
+      <p
+        class="text-xs md:text-sm text-slate-300 font-medium uppercase tracking-wider"
+      >
+        Years Experience
+      </p>
+    </div>
+
+    <div class="p-2 border-r border-slate-800 last:border-none">
+      <div
+        class="text-3xl md:text-5xl font-black text-accent mb-1 flex justify-center items-center"
+      >
+        <span class="counter" data-target="150">0</span><span>+</span>
+      </div>
+      <p
+        class="text-xs md:text-sm text-slate-300 font-medium uppercase tracking-wider"
+      >
+        Projects Completed
+      </p>
+    </div>
+
+    <div class="p-2 border-r border-slate-800 last:border-none">
+      <div
+        class="text-3xl md:text-5xl font-black text-accent mb-1 flex justify-center items-center"
+      >
+        <span class="counter" data-target="100">0</span><span>%</span>
+      </div>
+      <p
+        class="text-xs md:text-sm text-slate-300 font-medium uppercase tracking-wider"
+      >
+        Safety Record
+      </p>
+    </div>
+
+    <div class="p-2">
+      <div
+        class="text-3xl md:text-5xl font-black text-accent mb-1 flex justify-center items-center"
+      >
+        <span class="counter" data-target="50">0</span><span>+</span>
+      </div>
+      <p
+        class="text-xs md:text-sm text-slate-300 font-medium uppercase tracking-wider"
+      >
+        Heavy Equipment
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- INFINITE PARTNER / CLIENT TICKER -->
+<section
+  class="py-12 bg-slate-100 border-y border-slate-200 mt-16 overflow-hidden"
+>
+  <div class="max-w-[1160px] mx-auto px-[5%] mb-4 text-center">
+    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest"
+      >Trusted By Leading Organisations</span
+    >
+  </div>
+
+  <div class="relative w-full flex overflow-x-hidden group">
+    <div
+      class="animate-marquee flex gap-12 whitespace-nowrap items-center text-slate-400 font-bold text-lg uppercase tracking-wider"
+    >
+      <span class="hover:text-accent transition-colors cursor-default"
+        >CIDCO Maharashtra</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >Navi Mumbai Municipal Corp</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >MIDC Industrial</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >Pipelink Infrastructure</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >State Housing Board</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >Urban Water Authority</span
+      >
+      •
+    </div>
+
+    <div
+      class="animate-marquee flex gap-12 whitespace-nowrap items-center text-slate-400 font-bold text-lg uppercase tracking-wider"
+      aria-hidden="true"
+    >
+      <span class="hover:text-accent transition-colors cursor-default"
+        >CIDCO Maharashtra</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >Navi Mumbai Municipal Corp</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >MIDC Industrial</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >Pipelink Infrastructure</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >State Housing Board</span
+      >
+      •
+      <span class="hover:text-accent transition-colors cursor-default"
+        >Urban Water Authority</span
+      >
+      •
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED PROJECTS SECTION -->
 <section class="py-20 max-w-[1160px] mx-auto px-[5%]">
   <div class="flex justify-between items-end mb-12 flex-wrap gap-4">
     <div>
@@ -70,15 +201,34 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
     {% if projects %} {% for proj in projects[:3] %}
     <div
-      class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-lg transition-shadow"
+      class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl transition-all duration-300 group"
     >
-      <div class="h-48 bg-slate-200 relative overflow-hidden">
+      <div
+        class="h-48 bg-slate-900 relative overflow-hidden cursor-zoom-in"
+        {%
+        if
+        proj.image_filename
+        %}
+        onclick="openImageModal('{{ proj.image_filename }}', '{{ proj.name_of_work|e }}', '{{ proj.nature_of_work|e }}', '{{ proj.sr_no|e }}')"
+        {%
+        endif
+        %}
+      >
         {% if proj.image_filename %}
         <img
           src="{{ proj.image_filename }}"
           alt="{{ proj.name_of_work }}"
-          class="w-full h-full object-cover"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
+        <div
+          class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+        >
+          <span
+            class="bg-slate-900/80 text-white text-xs font-semibold px-4 py-2 rounded-full border border-white/20 backdrop-blur-sm"
+          >
+            🔍 View Photo
+          </span>
+        </div>
         {% else %}
         <div
           class="w-full h-full flex items-center justify-center text-slate-400 font-bold bg-slate-800 text-white"
@@ -94,7 +244,7 @@
         <h3 class="font-bold text-lg text-slate-900 mb-2">
           {{ proj.name_of_work }}
         </h3>
-        <p class="text-slate-600 text-sm mb-4 line-clamp-2">
+        <p class="text-slate-600 text-sm mb-4 line-clamp-2 leading-relaxed">
           {{ proj.nature_of_work }}
         </p>
         <div
@@ -110,4 +260,47 @@
     {% endif %}
   </div>
 </section>
+
+<!-- NUMBER COUNTER SCRIPT -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const counters = document.querySelectorAll(".counter");
+    const speed = 200; // lower is faster
+
+    const startCounters = () => {
+      counters.forEach((counter) => {
+        const updateCount = () => {
+          const target = +counter.getAttribute("data-target");
+          const count = +counter.innerText;
+          const inc = Math.ceil(target / speed) || 1;
+
+          if (count < target) {
+            counter.innerText = count + inc;
+            setTimeout(updateCount, 20);
+          } else {
+            counter.innerText = target;
+          }
+        };
+        updateCount();
+      });
+    };
+
+    // Trigger on scroll when stats are visible
+    let observer = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            startCounters();
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.5 },
+    );
+
+    if (counters.length > 0) {
+      observer.observe(counters[0].parentElement.parentElement);
+    }
+  });
+</script>
 {% endblock %}
