@@ -1,9 +1,12 @@
 import os
 import sys
+import csv
+import io
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, Response, make_response
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
 from supabase import create_client, Client
 
@@ -23,10 +26,13 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max 16MB upload
 # Environment Credentials & URL Sanitization
 raw_db_url = os.getenv('DATABASE_URL', '').strip().strip("'").strip('"')
 
+# Ensure PostgreSQL uses psycopg2 explicitly
 if raw_db_url.startswith("postgres://"):
-    raw_db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
+    raw_db_url = raw_db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif raw_db_url.startswith("postgresql://") and not raw_db_url.startswith("postgresql+psycopg2://"):
+    raw_db_url = raw_db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-# Remove unsupported pgbouncer query parameter for psycopg v3
+# Remove unsupported pgbouncer query parameter
 if "?pgbouncer=true" in raw_db_url:
     raw_db_url = raw_db_url.replace("?pgbouncer=true", "")
 elif "&pgbouncer=true" in raw_db_url:
@@ -49,6 +55,17 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=4)
 
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123').strip().strip("'").strip('"')
 
+# Flask-Mail Setup
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() in ['true', 'on', '1']
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', '')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+ADMIN_NOTIFY_EMAIL = os.getenv('ADMIN_NOTIFY_EMAIL', app.config['MAIL_USERNAME'])
+
+mail = Mail(app)
+
 # Supabase Storage Setup
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().strip("'").strip('"')
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "").strip().strip("'").strip('"')
@@ -64,7 +81,6 @@ def allowed_file(filename):
 # --- GLOBAL SECURITY GUARD FOR ALL ADMIN ROUTES ---
 @app.before_request
 def restrict_admin_access():
-    # If the user tries to open any path under /admin (except /admin/login) without logging in:
     if request.path.startswith('/admin') and request.path != '/admin/login':
         if not session.get('is_admin'):
             flash("Please log in to access the admin panel.", "error")
@@ -80,6 +96,7 @@ class Enquiry(db.Model):
     email = db.Column(db.String(254), nullable=True)
     service = db.Column(db.String(100), nullable=False)
     message = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='New', nullable=False)  # New, In Progress, Contacted, Closed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Project(db.Model):
@@ -104,7 +121,6 @@ class SiteContent(db.Model):
 with app.app_context():
     db.create_all()
     
-    # Initialize default website content blocks if empty
     default_contents = [
         ('hero', 'Siddhivinayak Enterprises', 'Leading Construction & Civil Solutions', 'Delivering excellence in construction, renovation, and structural engineering across Maharashtra.'),
         ('about', 'About Our Company', 'Quality & Trust Since Day One', 'We specialize in modern infrastructure developments, residential construction, and commercial engineering projects.'),
@@ -162,11 +178,55 @@ def contact():
                 db.session.add(new_lead)
                 db.session.commit()
                 message = f"Thank you, {full_name}! Your enquiry has been received."
+
+                # Send Automated Email Notifications
+                if app.config['MAIL_USERNAME']:
+                    try:
+                        # 1. Admin Alert Email
+                        admin_msg = Message(
+                            subject=f"🚨 New Lead: {full_name} ({service})",
+                            recipients=[ADMIN_NOTIFY_EMAIL],
+                            body=f"New project enquiry received:\n\nName: {full_name}\nPhone: {phone}\nEmail: {email}\nService: {service}\nMessage:\n{user_message}"
+                        )
+                        mail.send(admin_msg)
+
+                        # 2. Client Auto-confirmation Email
+                        if email:
+                            client_msg = Message(
+                                subject="Enquiry Received | Siddhivinayak Enterprises",
+                                recipients=[email],
+                                body=f"Dear {full_name},\n\nThank you for reaching out to Siddhivinayak Enterprises. We have received your inquiry regarding {service}.\n\nOur engineering team will review your requirement and contact you shortly at {phone}.\n\nBest Regards,\nSiddhivinayak Enterprises Team"
+                            )
+                            mail.send(client_msg)
+                    except Exception as mail_err:
+                        print("EMAIL DISPATCH NOTICE:", str(mail_err))
+
             except Exception as e:
                 db.session.rollback()
                 print("ENQUIRY SAVE ERROR:", str(e))
                 error = "Database error."
     return render_template('contact.html', message=message, error=error, info=contact_info)
+
+
+# --- AUTOMATED SEO SITEMAP ROUTE ---
+@app.route('/sitemap.xml')
+def sitemap():
+    host = request.host_url.rstrip('/')
+    pages = [
+        {'loc': f"{host}/", 'changefreq': 'weekly', 'priority': '1.0'},
+        {'loc': f"{host}/about", 'changefreq': 'monthly', 'priority': '0.8'},
+        {'loc': f"{host}/services", 'changefreq': 'monthly', 'priority': '0.8'},
+        {'loc': f"{host}/projects", 'changefreq': 'weekly', 'priority': '0.9'},
+        {'loc': f"{host}/contact", 'changefreq': 'monthly', 'priority': '0.7'},
+    ]
+    xml_sitemap = f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for p in pages:
+        xml_sitemap += f'  <url>\n    <loc>{p["loc"]}</loc>\n    <changefreq>{p["changefreq"]}</changefreq>\n    <priority>{p["priority"]}</priority>\n  </url>\n'
+    xml_sitemap += '</urlset>'
+    
+    response = make_response(xml_sitemap)
+    response.headers["Content-Type"] = "application/xml"
+    return response
 
 
 # --- ADMIN AUTHENTICATION ---
@@ -195,7 +255,9 @@ def admin_logout():
 @app.route('/admin')
 def admin_dashboard():
     contents = SiteContent.query.all()
-    return render_template('admin_dashboard.html', contents=contents)
+    total_enquiries = Enquiry.query.count()
+    new_enquiries = Enquiry.query.filter_by(status='New').count()
+    return render_template('admin_dashboard.html', contents=contents, total_enquiries=total_enquiries, new_enquiries=new_enquiries)
 
 @app.route('/admin/content/edit/<section_key>', methods=['GET', 'POST'])
 def edit_content(section_key):
@@ -213,6 +275,41 @@ def edit_content(section_key):
 def view_enquiries():
     all_enquiries = Enquiry.query.order_by(Enquiry.created_at.desc()).all()
     return render_template('admin_enquiries.html', enquiries=all_enquiries)
+
+@app.route('/admin/enquiries/status/<int:id>', methods=['POST'])
+def update_enquiry_status(id):
+    enquiry = Enquiry.query.get_or_404(id)
+    new_status = request.form.get('status')
+    if new_status in ['New', 'In Progress', 'Contacted', 'Closed']:
+        enquiry.status = new_status
+        db.session.commit()
+    return redirect(url_for('view_enquiries'))
+
+# --- CSV LEAD EXPORTER ROUTE ---
+@app.route('/admin/enquiries/export')
+def export_enquiries_csv():
+    enquiries = Enquiry.query.order_by(Enquiry.created_at.desc()).all()
+    
+    si = io.StringIO()
+    writer = csv.writer(si)
+    writer.writerow(['ID', 'Received Date', 'Full Name', 'Phone', 'Email', 'Service', 'Status', 'Message'])
+    
+    for eq in enquiries:
+        writer.writerow([
+            eq.id,
+            eq.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            eq.full_name,
+            eq.phone,
+            eq.email or '',
+            eq.service,
+            eq.status,
+            eq.message
+        ])
+        
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = f"attachment; filename=leads_export_{datetime.utcnow().strftime('%Y%m%d')}.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 @app.route('/admin/projects', methods=['GET', 'POST'])
 def admin_projects():
