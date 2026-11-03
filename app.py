@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -26,9 +26,27 @@ raw_db_url = os.getenv('DATABASE_URL', '').strip().strip("'").strip('"')
 if raw_db_url.startswith("postgres://"):
     raw_db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
 
+# Remove unsupported pgbouncer query parameter for psycopg v3
+if "?pgbouncer=true" in raw_db_url:
+    raw_db_url = raw_db_url.replace("?pgbouncer=true", "")
+elif "&pgbouncer=true" in raw_db_url:
+    raw_db_url = raw_db_url.replace("&pgbouncer=true", "")
+
 app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Engine options to prevent closed connection errors from Supabase Pooler
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
+
+# Session Security Configurations
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_secret_key_change_this').strip().strip("'").strip('"')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=4)
+
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123').strip().strip("'").strip('"')
 
 # Supabase Storage Setup
@@ -41,6 +59,17 @@ db = SQLAlchemy(app)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# --- GLOBAL SECURITY GUARD FOR ALL ADMIN ROUTES ---
+@app.before_request
+def restrict_admin_access():
+    # If the user tries to open any path under /admin (except /admin/login) without logging in:
+    if request.path.startswith('/admin') and request.path != '/admin/login':
+        if not session.get('is_admin'):
+            flash("Please log in to access the admin panel.", "error")
+            return redirect(url_for('admin_login'))
+
 
 # --- DATABASE MODELS ---
 class Enquiry(db.Model):
@@ -86,6 +115,7 @@ with app.app_context():
         if not SiteContent.query.filter_by(section_key=key).first():
             db.session.add(SiteContent(section_key=key, title=title, subtitle=subtitle, body_text=body))
     db.session.commit()
+
 
 # --- PUBLIC DYNAMIC ROUTES ---
 @app.route('/')
@@ -138,12 +168,17 @@ def contact():
                 error = "Database error."
     return render_template('contact.html', message=message, error=error, info=contact_info)
 
+
 # --- ADMIN AUTHENTICATION ---
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
+    if session.get('is_admin'):
+        return redirect(url_for('admin_dashboard'))
+
     error = None
     if request.method == 'POST':
         if request.form.get('password') == ADMIN_PASSWORD:
+            session.permanent = True
             session['is_admin'] = True
             return redirect(url_for('admin_dashboard'))
         else:
@@ -152,22 +187,18 @@ def admin_login():
 
 @app.route('/admin/logout')
 def admin_logout():
-    session.pop('is_admin', None)
+    session.clear()
     return redirect(url_for('admin_login'))
+
 
 # --- ADMIN DASHBOARD & CMS CONTENT ROUTES ---
 @app.route('/admin')
 def admin_dashboard():
-    if not session.get('is_admin'):
-        return redirect(url_for('admin_login'))
     contents = SiteContent.query.all()
     return render_template('admin_dashboard.html', contents=contents)
 
 @app.route('/admin/content/edit/<section_key>', methods=['GET', 'POST'])
 def edit_content(section_key):
-    if not session.get('is_admin'):
-        return redirect(url_for('admin_login'))
-    
     content = SiteContent.query.filter_by(section_key=section_key).first_or_404()
     if request.method == 'POST':
         content.title = request.form.get('title')
@@ -180,16 +211,11 @@ def edit_content(section_key):
 
 @app.route('/admin/enquiries')
 def view_enquiries():
-    if not session.get('is_admin'):
-        return redirect(url_for('admin_login'))
     all_enquiries = Enquiry.query.order_by(Enquiry.created_at.desc()).all()
     return render_template('admin_enquiries.html', enquiries=all_enquiries)
 
 @app.route('/admin/projects', methods=['GET', 'POST'])
 def admin_projects():
-    if not session.get('is_admin'):
-        return redirect(url_for('admin_login'))
-
     if request.method == 'POST':
         sr_no = request.form.get('sr_no')
         name_of_work = request.form.get('name_of_work')
@@ -229,9 +255,6 @@ def admin_projects():
 
 @app.route('/admin/projects/delete/<int:id>', methods=['POST'])
 def delete_project(id):
-    if not session.get('is_admin'):
-        return redirect(url_for('admin_login'))
-    
     proj = Project.query.get_or_404(id)
     if proj.image_filename:
         try:

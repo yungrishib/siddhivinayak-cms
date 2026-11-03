@@ -1,173 +1,70 @@
-{% extends "base.html" %} {% block title %}About Us & Organizational Structure |
-Siddhivinayak Enterprises{% endblock %} {% block content %}
-<!-- Page Header -->
-<section class="bg-gradient-to-br from-[#0b1120] to-[#1e293b] text-white py-16">
-  <div class="max-w-[1160px] mx-auto px-[5%]">
-    <p class="text-accent text-[0.8rem] tracking-[0.12em] font-bold mb-2">
-      COMPANY PROFILE
-    </p>
-    <h1 class="text-white text-3xl md:text-5xl font-bold">
-      Organizational Structure & Leadership
+{% extends "base.html" %} {% block title %}About Us | Siddhivinayak
+Enterprises{% endblock %} {% block content %}
+<!-- HEADER BANNER -->
+<section
+  class="relative bg-slate-900 bg-cover bg-center bg-no-repeat text-white pt-36 pb-16 overflow-hidden"
+  style="
+    background-image:
+      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.82)),
+      url(&quot;/static/images/hero-bg.png&quot;);
+  "
+>
+  <div class="max-w-[1160px] mx-auto px-[5%] relative z-10">
+    <span
+      class="inline-block py-1 px-3 rounded bg-accent/20 text-accent font-semibold text-xs tracking-wider uppercase mb-3 border border-accent/30"
+    >
+      Company Profile
+    </span>
+    <h1
+      class="text-3xl md:text-5xl font-extrabold tracking-tight mb-3 text-white"
+    >
+      {{ content.title if content and content.title else 'Organizational
+      Structure & Leadership' }}
     </h1>
-    <p class="text-[#94a3b8] mt-3 max-w-2xl">
-      Registered partnership firm dedicated to supreme quality plumbing and
-      pipeline infrastructure solutions.
+    <p class="text-slate-300 text-base md:text-lg max-w-2xl">
+      {{ content.subtitle if content and content.subtitle else 'Registered
+      partnership firm dedicated to supreme quality plumbing and pipeline
+      infrastructure solutions.' }}
     </p>
   </div>
 </section>
 
-<!-- Company Details Table / Card -->
-<section class="py-20 bg-slate-50">
-  <div class="max-w-[1160px] mx-auto px-[5%]">
-    <div
-      class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 md:p-12 mb-12"
+<!-- MAIN CONTENT -->
+<section class="py-16 max-w-[1160px] mx-auto px-[5%]">
+  <div
+    class="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-slate-100"
+  >
+    <h2
+      class="text-2xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-100"
     >
-      <h2
-        class="text-2xl font-bold text-primary mb-8 border-b border-slate-100 pb-4"
-      >
-        Firm Profile & Registration
-      </h2>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 text-sm">
-        <div>
-          <p
-            class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1"
-          >
-            Name of the Firm
-          </p>
-          <p class="font-bold text-primary text-base">
-            Siddhivinayak Enterprises
-          </p>
-          <p class="text-xs text-slate-500 mt-0.5">GST NO: 27ADOFS7603L1ZG</p>
-        </div>
-        <div>
-          <p
-            class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1"
-          >
-            Status
-          </p>
-          <p class="font-semibold text-primary text-base">Partnership Firm</p>
-        </div>
-        <div>
-          <p
-            class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1"
-          >
-            Office Address
-          </p>
-          <p class="text-slate-700 leading-relaxed">
-            502, Prabhat Center Annexe, CBD Belapur, Navi Mumbai - 400614.
-          </p>
-        </div>
-        <div>
-          <p
-            class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1"
-          >
-            Postal Address
-          </p>
-          <p class="text-slate-700 leading-relaxed">
-            B-701, Pratham Heritage, Plot No. 11 & 12, Sector-19, Kamothe, Navi
-            Mumbai - 410209.
-          </p>
-        </div>
+      Firm Profile & Details
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+      <div>
+        <span
+          class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1"
+          >Name of the Firm</span
+        >
+        <p class="text-lg font-bold text-slate-800">
+          Siddhivinayak Enterprises
+        </p>
+      </div>
+      <div>
+        <span
+          class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1"
+          >Status</span
+        >
+        <p class="text-lg font-bold text-slate-800">Partnership Firm</p>
       </div>
     </div>
 
-    <!-- Leadership / Partners -->
-    <h2 class="text-2xl font-bold text-primary mb-6">Our Leadership</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-      <!-- Partner 1 -->
-      <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-        <span class="text-xs font-bold text-accent tracking-wider uppercase"
-          >Partner 1</span
-        >
-        <h3 class="text-xl font-bold text-primary mt-1 mb-3">
-          Yashwant J. Bhuvad
-        </h3>
-        <p class="text-xs font-bold text-slate-400 uppercase mb-2">
-          Experience
-        </p>
-        <p class="text-slate-700 text-sm leading-relaxed">
-          Working as an expert Plumbing Contractor since 1993, bringing decades
-          of field mastery, technical execution, and reliability to every
-          project.
-        </p>
-      </div>
-
-      <!-- Partner 2 -->
-      <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-        <span class="text-xs font-bold text-accent tracking-wider uppercase"
-          >Partner 2 (B.E. Civil)</span
-        >
-        <h3 class="text-xl font-bold text-primary mt-1 mb-3">
-          Vishal V. Patil (B.E. Civil)
-        </h3>
-        <p class="text-xs font-bold text-slate-400 uppercase mb-2">
-          Professional Experience (2004 to 2018)
-        </p>
-        <ul class="text-slate-700 text-sm space-y-2">
-          <li class="flex items-start gap-2">
-            <span>•</span> Worked as Site Engineer with S.R. Associate, Pune.
-          </li>
-          <li class="flex items-start gap-2">
-            <span>•</span> Worked as Jr. Engg. with Suma Shilp Ltd., Pune.
-          </li>
-          <li class="flex items-start gap-2">
-            <span>•</span> Worked as Sr. Engg. with Neelkanth Group, Thane.
-          </li>
-          <li class="flex items-start gap-2">
-            <span>•</span> Worked as Sr. Engg. with Rutu Builders, Thane.
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Vision & Mission & Commitment -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div class="bg-primary text-white p-8 rounded-2xl shadow-lg">
-        <h3 class="text-xl font-bold mb-4">Our Vision & Mission</h3>
-        <ul class="space-y-4 text-slate-300 text-sm leading-relaxed">
-          <li>
-            • To be a leading business that delivers exceptional and sustainable
-            value for our customers.
-          </li>
-          <li>
-            • Creating a highly challenging and techno-savvy work environment
-            for enhancing customer satisfaction.
-          </li>
-          <li>
-            • We stand on our policy to provide ultimate quality in terms of
-            products and services to meet client expectations.
-          </li>
-        </ul>
-      </div>
-
-      <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-        <h3 class="text-xl font-bold text-primary mb-4">
-          Commitment & Assurance
-        </h3>
-        <ul class="space-y-3 text-slate-600 text-sm">
-          <li class="flex items-center gap-2">
-            <span class="text-accent font-bold">✓</span> To be a dynamic and
-            focused partner in the project.
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="text-accent font-bold">✓</span> Committed to quality,
-            innovation, service and value.
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="text-accent font-bold">✓</span> Highest standards of
-            corporate governance & transparency.
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="text-accent font-bold">✓</span> Cost and planning
-            optimization with risk management.
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="text-accent font-bold">✓</span> Fostering environmental
-            protection and sustainable development.
-          </li>
-        </ul>
-      </div>
+    <div class="prose max-w-none text-slate-600 leading-relaxed text-base">
+      <p>
+        {{ content.body_text if content and content.body_text else 'We
+        specialize in modern infrastructure developments, residential
+        construction, and commercial engineering projects across Maharashtra.'
+        }}
+      </p>
     </div>
   </div>
 </section>

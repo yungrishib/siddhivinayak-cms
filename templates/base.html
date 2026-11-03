@@ -25,11 +25,11 @@
     </script>
   </head>
   <body
-    class="bg-white text-slate-700 font-sans antialiased selection:bg-amber-500 selection:text-white"
+    class="bg-slate-50 text-slate-700 font-sans antialiased selection:bg-amber-500 selection:text-white flex flex-col min-h-screen"
   >
-    <!-- LIQUID GLASS NAVBAR -->
+    <!-- FIXED LIQUID GLASS NAVBAR -->
     <header
-      class="fixed top-0 left-0 w-full z-50 bg-primary/40 backdrop-blur-xl backdrop-saturate-180 border-b border-white/10 shadow-2xl"
+      class="fixed top-0 left-0 w-full z-50 bg-slate-900/40 backdrop-blur-xl backdrop-saturate-180 border-b border-white/10 shadow-2xl transition-all"
     >
       <nav
         class="max-w-[1160px] mx-auto px-[5%] flex items-center justify-between h-[72px]"
@@ -41,13 +41,13 @@
           aria-label="Siddhivinayak Enterprises home"
         >
           <span
-            class="bg-accent text-white font-extrabold text-base w-[38px] h-[38px] rounded-md grid place-items-center"
+            class="bg-accent text-white font-extrabold text-base w-[38px] h-[38px] rounded-md grid place-items-center shadow-md"
             >SE</span
           >
           <span class="font-bold text-[1.15rem] leading-tight">
             Siddhivinayak
             <small
-              class="block font-normal text-[0.65rem] tracking-[0.18em] text-[#94a3b8]"
+              class="block font-normal text-[0.65rem] tracking-[0.18em] text-slate-400"
               >ENTERPRISES</small
             >
           </span>
@@ -56,38 +56,39 @@
         <button
           class="menu-toggle md:hidden bg-transparent border-none text-white text-[1.75rem] cursor-pointer"
           aria-label="Toggle navigation"
-          aria-expanded="false"
-          aria-controls="nav-links"
+          onclick="
+            document.getElementById('nav-links').classList.toggle('hidden')
+          "
         >
           ☰
         </button>
 
         <div
-          class="nav-links hidden md:flex items-center gap-7 absolute md:relative top-[72px] md:top-auto left-0 right-0 bg-primary/95 md:bg-transparent flex-col md:flex-row py-6 md:py-0 border-b md:border-none border-white/10"
+          class="nav-links hidden md:flex items-center gap-7 absolute md:relative top-[72px] md:top-auto left-0 right-0 bg-slate-900/95 md:bg-transparent flex-col md:flex-row py-6 md:py-0 border-b md:border-none border-white/10"
           id="nav-links"
         >
           <a
             href="{{ url_for('home') }}"
-            class="text-[#cbd5e1] hover:text-white text-[0.95rem] no-underline transition-colors"
+            class="text-slate-200 hover:text-accent text-[0.95rem] font-medium no-underline transition-colors"
             >Home</a
           >
           <a
             href="{{ url_for('about') }}"
-            class="text-[#cbd5e1] hover:text-white text-[0.95rem] no-underline transition-colors"
+            class="text-slate-200 hover:text-accent text-[0.95rem] font-medium no-underline transition-colors"
             >About</a
           >
           <a
             href="{{ url_for('services') }}"
-            class="text-[#cbd5e1] hover:text-white text-[0.95rem] no-underline transition-colors"
+            class="text-slate-200 hover:text-accent text-[0.95rem] font-medium no-underline transition-colors"
             >Services</a
           >
           <a
             href="{{ url_for('projects') }}"
-            class="text-[#cbd5e1] hover:text-white text-[0.95rem] no-underline transition-colors"
+            class="text-slate-200 hover:text-accent text-[0.95rem] font-medium no-underline transition-colors"
             >Projects</a
           >
           <a
-            class="bg-accent text-white px-4 py-2 rounded-lg font-semibold text-[0.95rem] hover:bg-accent-hover transition-colors shadow-md"
+            class="bg-accent text-white px-5 py-2.5 rounded-lg font-semibold text-[0.95rem] hover:bg-accent-hover transition-colors shadow-lg shadow-accent/20"
             href="{{ url_for('contact') }}"
             >Contact Us</a
           >
@@ -95,13 +96,15 @@
       </nav>
     </header>
 
-    <!-- UNIQUE PAGE CONTENT INJECTED HERE -->
-    <main>{% block content %}{% endblock %}</main>
+    <!-- UNIQUE PAGE CONTENT -->
+    <main class="flex-grow">{% block content %}{% endblock %}</main>
 
     <!-- SHARED FOOTER -->
-    <footer class="bg-primary text-white py-12 pb-6 mt-20">
+    <footer
+      class="bg-slate-900 text-white py-12 pb-6 mt-16 border-t border-slate-800"
+    >
       <div
-        class="max-w-[1160px] mx-auto px-[5%] flex justify-between items-center flex-wrap gap-6 pb-8 border-b border-white/10"
+        class="max-w-[1160px] mx-auto px-[5%] flex justify-between items-center flex-wrap gap-6 pb-8 border-b border-slate-800"
       >
         <a
           class="flex items-center gap-3 text-white no-underline"
@@ -111,35 +114,32 @@
             class="bg-accent text-white font-extrabold text-base w-[38px] h-[38px] rounded-md grid place-items-center"
             >SE</span
           >
-          <span class="font-bold text-[1.15rem] leading-tight"
-            >Siddhivinayak
+          <span class="font-bold text-[1.15rem] leading-tight">
+            Siddhivinayak
             <small
-              class="block font-normal text-[0.65rem] tracking-[0.18em] text-[#94a3b8]"
+              class="block font-normal text-[0.65rem] tracking-[0.18em] text-slate-400"
               >ENTERPRISES</small
-            ></span
-          >
+            >
+          </span>
         </a>
-        <p class="text-[#94a3b8] text-[0.9rem]">
-          Real estate and pipeline solutions with a focus on trust and quality.
+        <p class="text-slate-400 text-[0.9rem] max-w-md">
+          Leading civil construction and pipeline infrastructure solutions
+          delivered with quality and trust across Maharashtra.
         </p>
         <a
-          href="#home"
+          href="#"
           class="text-accent font-semibold text-[0.85rem] no-underline hover:underline"
           >Back to top ↑</a
         >
       </div>
       <div
-        class="max-w-[1160px] mx-auto px-[5%] flex justify-between pt-6 text-[0.8rem] text-[#64748b] flex-wrap gap-3"
+        class="max-w-[1160px] mx-auto px-[5%] flex justify-between pt-6 text-[0.8rem] text-slate-500 flex-wrap gap-3"
       >
-        <span
-          >© <span id="year"></span> Siddhivinayak Enterprises. All rights
-          reserved.</span
-        >
-        <span>Built for your business.</span>
+        <span>© Siddhivinayak Enterprises. All rights reserved.</span>
+        <span>Built for excellence.</span>
       </div>
     </footer>
 
-    <!-- JavaScript Link -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
   </body>
 </html>
