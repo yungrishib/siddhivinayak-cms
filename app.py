@@ -1,9 +1,9 @@
-import threading
-import smtplib
 import os
 import sys
 import csv
 import io
+import smtplib
+import threading
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, flash, Response, make_response
@@ -28,13 +28,13 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Max 16MB upload
 # --- DATABASE CONNECTION & SANITIZATION ---
 raw_db_url = os.getenv('DATABASE_URL', '').strip().strip("'").strip('"')
 
-# Ensure PostgreSQL explicitly uses the psycopg2 driver
+# Force SQLAlchemy to use the psycopg2 driver for PostgreSQL
 if raw_db_url.startswith("postgres://"):
     raw_db_url = raw_db_url.replace("postgres://", "postgresql+psycopg2://", 1)
 elif raw_db_url.startswith("postgresql://") and not raw_db_url.startswith("postgresql+psycopg2://"):
     raw_db_url = raw_db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-# Clean up pgbouncer query parameters
+# Remove unsupported pgbouncer query parameters
 if "?pgbouncer=true" in raw_db_url:
     raw_db_url = raw_db_url.replace("?pgbouncer=true", "")
 elif "&pgbouncer=true" in raw_db_url:
@@ -55,7 +55,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=4)
 
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123').strip().strip("'").strip('"')
 
-# --- FLASK-MAIL CONFIGURATION (SSL PORT 465 FOR CLOUD HOSTING) ---
+# --- FLASK-MAIL CONFIGURATION ---
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 465))
 app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'False').lower() in ['true', 'on', '1']
@@ -77,6 +77,32 @@ db = SQLAlchemy(app)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# --- ASYNCHRONOUS SMTP DISPATCHER ---
+def send_email_in_background(sender, recipient, subject, body):
+    """Sends raw SMTP email in a completely detached thread to prevent blocking Gunicorn."""
+    mail_user = app.config['MAIL_USERNAME']
+    mail_pass = app.config['MAIL_PASSWORD']
+    
+    if not mail_user or not mail_pass:
+        return
+
+    try:
+        if app.config['MAIL_USE_SSL']:
+            server = smtplib.SMTP_SSL(app.config['MAIL_SERVER'], app.config['MAIL_PORT'], timeout=10)
+        else:
+            server = smtplib.SMTP(app.config['MAIL_SERVER'], app.config['MAIL_PORT'], timeout=10)
+            if app.config['MAIL_USE_TLS']:
+                server.starttls()
+
+        server.login(mail_user, mail_pass)
+        email_text = f"From: {sender}\nTo: {recipient}\nSubject: {subject}\n\n{body}"
+        server.sendmail(sender, recipient, email_text)
+        server.quit()
+        print(f"BACKGROUND MAIL DISPATCH SUCCESS: Sent to {recipient}")
+    except Exception as e:
+        print("ASYNC SMTP NOTICE (Form saved safely, mail failed):", str(e))
 
 
 # --- GLOBAL SECURITY GUARD FOR ALL ADMIN ROUTES ---
@@ -158,19 +184,6 @@ def projects():
     all_projects = Project.query.all()
     return render_template('projects.html', projects=all_projects)
 
-
-def send_email_in_background(sender, recipient, subject, body):
-    """Sends raw SMTP email in a completely detached thread."""
-    try:
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
-        server.login(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
-        
-        email_text = f"From: {sender}\nTo: {recipient}\nSubject: {subject}\n\n{body}"
-        server.sendmail(sender, recipient, email_text)
-        server.quit()
-    except Exception as e:
-        print("ASYNC SMTP ERROR (Form saved safely):", str(e))
-
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     message = None
@@ -188,7 +201,7 @@ def contact():
             error = "Please fill in all required fields."
         else:
             try:
-                # 1. Immediately Save to Database
+                # 1. Save Lead to Database
                 new_lead = Enquiry(
                     full_name=full_name, 
                     phone=phone, 
@@ -201,22 +214,24 @@ def contact():
                 db.session.commit()
                 message = f"Thank you, {full_name}! Your enquiry has been received."
 
-                # 2. Spawn Threaded SMTP Calls (Detached from Gunicorn Request)
+                # 2. Spawn Non-blocking Daemon Threads for Mail
+                sender_email = app.config.get('MAIL_DEFAULT_SENDER') or app.config.get('MAIL_USERNAME')
+                
                 if app.config['MAIL_USERNAME'] and app.config['MAIL_PASSWORD']:
                     # Admin Alert Thread
                     admin_body = f"New project enquiry received:\n\nName: {full_name}\nPhone: {phone}\nEmail: {email}\nService: {service}\nMessage:\n{user_message}"
                     threading.Thread(
                         target=send_email_in_background,
-                        args=(app.config['MAIL_DEFAULT_SENDER'], ADMIN_NOTIFY_EMAIL, f"🚨 New Lead: {full_name} ({service})", admin_body),
+                        args=(sender_email, ADMIN_NOTIFY_EMAIL, f"🚨 New Lead: {full_name} ({service})", admin_body),
                         daemon=True
                     ).start()
 
-                    # Client Auto-confirmation Thread
+                    # Client Confirmation Thread
                     if email:
                         client_body = f"Dear {full_name},\n\nThank you for reaching out to Siddhivinayak Enterprises. We have received your inquiry regarding {service}.\n\nOur engineering team will review your requirement and contact you shortly at {phone}.\n\nBest Regards,\nSiddhivinayak Enterprises Team"
                         threading.Thread(
                             target=send_email_in_background,
-                            args=(app.config['MAIL_DEFAULT_SENDER'], email, "Enquiry Received | Siddhivinayak Enterprises", client_body),
+                            args=(sender_email, email, "Enquiry Received | Siddhivinayak Enterprises", client_body),
                             daemon=True
                         ).start()
 
