@@ -1,3 +1,5 @@
+import threading
+import smtplib
 import os
 import sys
 import csv
@@ -156,6 +158,19 @@ def projects():
     all_projects = Project.query.all()
     return render_template('projects.html', projects=all_projects)
 
+
+def send_email_in_background(sender, recipient, subject, body):
+    """Sends raw SMTP email in a completely detached thread."""
+    try:
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
+        server.login(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
+        
+        email_text = f"From: {sender}\nTo: {recipient}\nSubject: {subject}\n\n{body}"
+        server.sendmail(sender, recipient, email_text)
+        server.quit()
+    except Exception as e:
+        print("ASYNC SMTP ERROR (Form saved safely):", str(e))
+
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     message = None
@@ -173,6 +188,7 @@ def contact():
             error = "Please fill in all required fields."
         else:
             try:
+                # 1. Immediately Save to Database
                 new_lead = Enquiry(
                     full_name=full_name, 
                     phone=phone, 
@@ -185,25 +201,24 @@ def contact():
                 db.session.commit()
                 message = f"Thank you, {full_name}! Your enquiry has been received."
 
-                # Send Automated Email Notifications safely without crashing on SMTP delays
+                # 2. Spawn Threaded SMTP Calls (Detached from Gunicorn Request)
                 if app.config['MAIL_USERNAME'] and app.config['MAIL_PASSWORD']:
-                    try:
-                        admin_msg = Message(
-                            subject=f"🚨 New Lead: {full_name} ({service})",
-                            recipients=[ADMIN_NOTIFY_EMAIL],
-                            body=f"New project enquiry received:\n\nName: {full_name}\nPhone: {phone}\nEmail: {email}\nService: {service}\nMessage:\n{user_message}"
-                        )
-                        mail.send(admin_msg)
+                    # Admin Alert Thread
+                    admin_body = f"New project enquiry received:\n\nName: {full_name}\nPhone: {phone}\nEmail: {email}\nService: {service}\nMessage:\n{user_message}"
+                    threading.Thread(
+                        target=send_email_in_background,
+                        args=(app.config['MAIL_DEFAULT_SENDER'], ADMIN_NOTIFY_EMAIL, f"🚨 New Lead: {full_name} ({service})", admin_body),
+                        daemon=True
+                    ).start()
 
-                        if email:
-                            client_msg = Message(
-                                subject="Enquiry Received | Siddhivinayak Enterprises",
-                                recipients=[email],
-                                body=f"Dear {full_name},\n\nThank you for reaching out to Siddhivinayak Enterprises. We have received your inquiry regarding {service}.\n\nOur engineering team will review your requirement and contact you shortly at {phone}.\n\nBest Regards,\nSiddhivinayak Enterprises Team"
-                            )
-                            mail.send(client_msg)
-                    except Exception as mail_err:
-                        print("SMTP NOTICE (Enquiry saved successfully, mail notification failed):", str(mail_err))
+                    # Client Auto-confirmation Thread
+                    if email:
+                        client_body = f"Dear {full_name},\n\nThank you for reaching out to Siddhivinayak Enterprises. We have received your inquiry regarding {service}.\n\nOur engineering team will review your requirement and contact you shortly at {phone}.\n\nBest Regards,\nSiddhivinayak Enterprises Team"
+                        threading.Thread(
+                            target=send_email_in_background,
+                            args=(app.config['MAIL_DEFAULT_SENDER'], email, "Enquiry Received | Siddhivinayak Enterprises", client_body),
+                            daemon=True
+                        ).start()
 
             except Exception as e:
                 db.session.rollback()
